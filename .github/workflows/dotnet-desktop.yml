@@ -7,7 +7,12 @@ on:
       - 'v*'
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [published]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 env:
   # Opt-in to Node.js 24 to remove deprecation warnings
@@ -50,13 +55,15 @@ jobs:
         [xml]$csproj = Get-Content $env:Project_Path
         $baseVersion = $csproj.Project.PropertyGroup.Version
         
-        $suffix = ""
-        if ("${{ github.ref }}" -eq "refs/heads/development") {
-          $suffix = "-dev"
-          Write-Host "Branch is development, applying -dev suffix"
+        $finalVersion = $baseVersion
+        if ("${{ github.ref }}".StartsWith("refs/tags/v")) {
+          $finalVersion = "${{ github.ref }}".Substring(11)
+          Write-Host "Triggered by tag, using version from tag: $finalVersion"
+        } elseif ("${{ github.ref }}" -eq "refs/heads/development") {
+          $finalVersion = "$baseVersion-dev"
+          Write-Host "Branch is development, applying -dev suffix: $finalVersion"
         }
         
-        $finalVersion = "$baseVersion$suffix"
         Write-Host "Building version: $finalVersion"
         
         dotnet publish $env:Project_Path `
@@ -68,6 +75,14 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=false `
           -p:Version=$finalVersion `
           -o $env:Publish_Directory
+
+        # Explicitly rename the output to match the expected pattern
+        $exePath = Get-ChildItem -Path $env:Publish_Directory -Filter "*.exe" | Select-Object -First 1
+        if ($exePath) {
+          $newName = "PotopopiCamSync_$finalVersion.exe"
+          Rename-Item -Path $exePath.FullName -NewName $newName
+          Write-Host "Renamed $($exePath.Name) to $newName"
+        }
 
     - name: Package AI Dependencies
       shell: pwsh
