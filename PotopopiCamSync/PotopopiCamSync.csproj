@@ -14,11 +14,11 @@
   </PropertyGroup>
 
   <Target Name="RenameExe" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-    <Copy SourceFiles="$(TargetDir)$(TargetName).exe" DestinationFiles="$(TargetDir)Potopopi_CamSync_v$(Version).exe" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).exe" DestinationFiles="$(TargetDir)PotopopiCamSync_$(Version).exe" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="RenamePublishExe" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(PublishDir)Potopopi_CamSync_v$(Version).exe" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(PublishDir)PotopopiCamSync_$(Version).exe" SkipUnchangedFiles="true" />
   </Target>
 
 
