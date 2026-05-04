@@ -9,6 +9,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  # Opt-in to Node.js 24 to remove deprecation warnings
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     strategy:
@@ -47,8 +51,8 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: PotopopiCamSync_Dev_Build
-        path: ${{ env.Publish_Directory }}/PotopopiCamSync_*.exe # Menggunakan format baru
+        name: PotopopiCamSync_Build
+        path: ${{ env.Publish_Directory }}/PotopopiCamSync_*.exe
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v2
