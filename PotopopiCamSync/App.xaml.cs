@@ -32,7 +32,9 @@ namespace PotopopiCamSync
                 {
                     services.AddSingleton<ISettingsRepository, JsonSettingsRepository>();
                     services.AddSingleton<HardwareDetectionService>();
-                    services.AddSingleton<IMediaAnalyzer, AIEngine>();
+                    services.AddSingleton<AIEngine>();
+                    services.AddSingleton<IMediaAnalyzer>(sp => sp.GetRequiredService<AIEngine>());
+                    services.AddSingleton<AIDependencyManager>();
                     services.AddSingleton<DeviceMonitorService>();
                     services.AddSingleton<SyncOrchestrator>();
                     services.AddSingleton<MainViewModel>();

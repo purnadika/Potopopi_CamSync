@@ -114,9 +114,37 @@ namespace PotopopiCamSync.Views
             }
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
+            var newAiMode = rbAI_Extreme.IsChecked == true ? AIAnalysisMode.Extreme : (rbAI_None.IsChecked == true ? AIAnalysisMode.None : AIAnalysisMode.Standard);
+            
+            if (newAiMode != AIAnalysisMode.None)
+            {
+                var depManager = App.ServiceProvider.GetRequiredService<AIDependencyManager>();
+                if (!depManager.IsInstalled())
+                {
+                    var result = MessageBox.Show("Fitur AI butuh modul tambahan (Native Libraries, ~45MB).\nDownload sekarang?", "AI Module Required", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var dlWindow = new AIDownloadWindow { Owner = this };
+                        if (dlWindow.ShowDialog() != true)
+                        {
+                            // Download failed or cancelled
+                            rbAI_None.IsChecked = true;
+                            return; // Stop saving
+                        }
+                    }
+                    else
+                    {
+                        // User declined
+                        rbAI_None.IsChecked = true;
+                        return; // Stop saving
+                    }
+                }
+            }
+
             var config = _settings.Config;
+
             config.LocalBackupFolder = txtLocalFolder.Text;
             config.DeleteAfterSync   = chkDeleteAfter.IsChecked ?? false;
             if (int.TryParse(txtKeepDays.Text, out int days)) config.KeepFilesDays = days;
@@ -131,7 +159,7 @@ namespace PotopopiCamSync.Views
             if (long.TryParse(txtDownloadLimit.Text, out long dlMb)) config.DownloadSpeedLimitBps = dlMb * 1024 * 1024;
             if (long.TryParse(txtUploadLimit.Text, out long ulMb)) config.UploadSpeedLimitBps = ulMb * 1024 * 1024;
 
-            config.AIAnalysisMode = rbAI_Extreme.IsChecked == true ? AIAnalysisMode.Extreme : (rbAI_None.IsChecked == true ? AIAnalysisMode.None : AIAnalysisMode.Standard);
+            config.AIAnalysisMode = newAiMode;
 
             config.StartMinimized = chkStartMinimized.IsChecked ?? false;
             config.MinimizeToTray = chkMinimizeToTray.IsChecked ?? true;
