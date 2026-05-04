@@ -11,15 +11,15 @@ using Newtonsoft.Json.Linq;
 
 namespace PotopopiCamSync.Services
 {
-    public class AIDependencyManager
+    public class AIDependencyManagerService
     {
-        private readonly ILogger<AIDependencyManager> _logger;
+        private readonly ILogger<AIDependencyManagerService> _logger;
         private readonly HttpClient _httpClient;
         private const string RepoOwner = "purnadika";
         private const string RepoName = "potopopi_CamSync";
         private const string ExpectedDll = "OpenCvSharpExtern.dll";
 
-        public AIDependencyManager(ILogger<AIDependencyManager> logger)
+        public AIDependencyManagerService(ILogger<AIDependencyManagerService> logger)
         {
             _logger = logger;
             _httpClient = new HttpClient();

@@ -91,6 +91,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/v')
       with:
+        generate_release_notes: true
         files: |
           ${{ env.Publish_Directory }}/PotopopiCamSync_*.exe
           ${{ env.Publish_Directory }}/AI_Dependencies.zip

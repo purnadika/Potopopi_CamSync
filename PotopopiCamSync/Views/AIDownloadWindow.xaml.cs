@@ -10,12 +10,12 @@ namespace PotopopiCamSync.Views
     public partial class AIDownloadWindow : Window
     {
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-        private readonly AIDependencyManager _dependencyManager;
+        private readonly AIDependencyManagerService _dependencyManager;
 
         public AIDownloadWindow()
         {
             InitializeComponent();
-            _dependencyManager = App.ServiceProvider.GetRequiredService<AIDependencyManager>();
+            _dependencyManager = App.ServiceProvider.GetRequiredService<AIDependencyManagerService>();
             Loaded += OnLoaded;
         }
 
