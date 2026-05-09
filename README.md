@@ -2,7 +2,7 @@
 
 **Potopopi CamSync** is a professional-grade media synchronization tool designed for photographers and enthusiasts. It bridges the gap between your camera (SD Cards, MTP devices) and [Immich](https://immich.app/), providing a seamless, automated, and AI-powered backup workflow.
 
-![Version](https://img.shields.io/badge/version-1.3.1-green)
+![Version](https://img.shields.io/badge/version-1.3.0-green)
 ![Platform](https://img.shields.io/badge/platform-windows-blue)
 
 ## ✨ Key Features
@@ -35,7 +35,7 @@
 - .NET 10 Runtime
 
 ### Installation
-1. Download the latest `PotopopiCamSync_v1.3.1.exe` from the Releases.
+1. Download the latest `PotopopiCamSync_v1.3.0.exe` from the Releases.
 2. Run the executable.
 3. Follow the **Setup Wizard** to configure your local backup folder and Immich credentials.
 
