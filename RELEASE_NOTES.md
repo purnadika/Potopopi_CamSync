@@ -7,6 +7,8 @@ This release focuses on improving the reliability of the AI engine and stabilizi
 - **Advanced Blur Detection**: Implemented a new grid-based Laplacian variance method for more accurate identification of out-of-focus areas.
 
 ### 🦾 Improvements & Fixes
+- **Automated Release Pipeline**: Merging to `main` now automatically bumps the version, updates documentation, builds the application, and creates a GitHub Release.
+- **Dynamic Test Execution**: Integration tests now automatically run on local development machines but skip in CI environments to prevent stalls, ensuring better local code quality.
 - **AI Module Detection**: Fixed a bug where the app would re-prompt for AI module downloads even if they were already present in the runtimes folder.
 - **Immich Sync Stabilization**:
     - Gracefully handles `409 Conflict` (Duplicate) errors, reporting them as "Skipped" instead of "Failed."
