@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Polly;
+using System.Linq;
+using System.Text.Json;
 using PotopopiCamSync.Models;
 
 namespace PotopopiCamSync.Services
@@ -221,8 +223,8 @@ namespace PotopopiCamSync.Services
             if (response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync(cancellationToken);
-                var assetResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body);
-                string? assetId = assetResponse?.id;
+                var assetResponse = JsonSerializer.Deserialize(body, SourceGenerationContext.Default.ImmichAssetResponse);
+                string? assetId = assetResponse?.Id;
 
                 if (!string.IsNullOrWhiteSpace(assetId) && !string.IsNullOrWhiteSpace(albumName))
                 {
@@ -264,8 +266,8 @@ namespace PotopopiCamSync.Services
                 using var request = new HttpRequestMessage(HttpMethod.Put, $"{_immichUrl}/albums/{albumId}/assets");
                 request.Headers.Add("x-api-key", _apiKey);
                 
-                var payload = new { ids = new[] { assetId } };
-                request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload), System.Text.Encoding.UTF8, "application/json");
+                var payload = new ImmichAddAssetRequest { Ids = [assetId] };
+                request.Content = new StringContent(JsonSerializer.Serialize(payload, SourceGenerationContext.Default.ImmichAddAssetRequest), System.Text.Encoding.UTF8, "application/json");
 
                 var res = await _httpClient.SendAsync(request, ct);
                 if (res.IsSuccessStatusCode) _logger.LogInformation("Assigned {AssetId} to album '{Album}'", assetId, albumName);
@@ -285,23 +287,23 @@ namespace PotopopiCamSync.Services
                 if (getRes.IsSuccessStatusCode)
                 {
                     var albumsBody = await getRes.Content.ReadAsStringAsync(ct);
-                    var albums = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic[]>(albumsBody);
-                    var existing = albums?.FirstOrDefault(a => (string)a.albumName == albumName);
-                    if (existing != null) return (string)existing.id;
+                    var albums = JsonSerializer.Deserialize(albumsBody, SourceGenerationContext.Default.ImmichAlbumResponseArray);
+                    var existing = albums?.FirstOrDefault(a => a.AlbumName == albumName);
+                    if (existing != null) return existing.Id;
                 }
 
                 // Create new
                 using var postReq = new HttpRequestMessage(HttpMethod.Post, $"{_immichUrl}/albums");
                 postReq.Headers.Add("x-api-key", _apiKey);
-                var payload = new { albumName = albumName };
-                postReq.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload), System.Text.Encoding.UTF8, "application/json");
+                var payload = new ImmichCreateAlbumRequest { AlbumName = albumName };
+                postReq.Content = new StringContent(JsonSerializer.Serialize(payload, SourceGenerationContext.Default.ImmichCreateAlbumRequest), System.Text.Encoding.UTF8, "application/json");
                 
                 var postRes = await _httpClient.SendAsync(postReq, ct);
                 if (postRes.IsSuccessStatusCode)
                 {
                     var resBody = await postRes.Content.ReadAsStringAsync(ct);
-                    var newAlbum = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(resBody);
-                    string? newId = newAlbum?.id;
+                    var newAlbum = JsonSerializer.Deserialize(resBody, SourceGenerationContext.Default.ImmichAssetResponse);
+                    string? newId = newAlbum?.Id;
                     return newId;
                 }
             }

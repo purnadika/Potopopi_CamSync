@@ -1,0 +1,114 @@
+name: Build PotopopiCamSync.Core (Native AOT)
+
+on:
+  push:
+    branches: [ sharedlib-main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            tfm: net10.0
+            ext: .dll
+            libtype: Shared
+          - os: ubuntu-latest
+            rid: linux-x64
+            tfm: net10.0
+            ext: .so
+            libtype: Shared
+          - os: macos-latest
+            rid: osx-arm64
+            tfm: net10.0-macos
+            ext: .dylib
+            libtype: Shared
+          # Android explicitly uses the Bionic RID with standard net10.0 TFM
+          - os: ubuntu-latest
+            rid: linux-bionic-arm64
+            tfm: net10.0
+            ext: .so
+            libtype: Shared
+          - os: macos-latest
+            rid: ios-arm64
+            tfm: net10.0-ios
+            ext: .a
+            libtype: Static
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Install specific workloads based on the current runner's target RID
+      - name: Install Workloads
+        shell: bash
+        run: |
+          if [ "${{ matrix.rid }}" == "linux-bionic-arm64" ]; then
+            sudo dotnet workload install android
+          elif [ "${{ matrix.rid }}" == "ios-arm64" ]; then
+            dotnet workload install ios
+          elif [ "${{ matrix.rid }}" == "osx-arm64" ]; then
+            dotnet workload install macos
+          fi
+
+      # INTEGRATED FIX: Call llvm-ar directly from the prebuilt Android NDK toolchain path
+      - name: Create Dummy libgcc for Android NDK
+        if: matrix.rid == 'linux-bionic-arm64'
+        shell: bash
+        run: |
+          mkdir -p PotopopiCamSync.Core/dummy_libgcc
+          echo "void __dummy_gcc(){}" > PotopopiCamSync.Core/dummy_libgcc/dummy.c
+          clang --target=aarch64-linux-android21 -c PotopopiCamSync.Core/dummy_libgcc/dummy.c -o PotopopiCamSync.Core/dummy_libgcc/dummy.o
+          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar rcs PotopopiCamSync.Core/dummy_libgcc/libgcc.a PotopopiCamSync.Core/dummy_libgcc/dummy.o
+          
+      # Execute publish with specific -f (TFM) and /p:NativeLib flags
+      - name: Publish Native AOT
+        run: dotnet publish PotopopiCamSync.Core/PotopopiCamSync.Core.csproj -c Release -f ${{ matrix.tfm }} -r ${{ matrix.rid }} -o ./publish/${{ matrix.rid }} /p:PublishAot=true /p:NativeLib=${{ matrix.libtype }}
+
+      # BULLETPROOF FIX: Search the entire repository directory (.) instead of relying on the publish folder,
+      # ensuring files generated inside bin/ or obj/ are always found and renamed correctly.
+      - name: Prepare and Rename Artifact
+        shell: bash
+        run: |
+          mkdir -p ./artifact-out
+          find . -name "*PotopopiCamSync.Core*${{ matrix.ext }}" -exec cp {} ./artifact-out/PotopopiCamSync.Core-${{ matrix.rid }}${{ matrix.ext }} \;
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PotopopiCamSync.Core-${{ matrix.rid }}
+          path: ./artifact-out/PotopopiCamSync.Core-${{ matrix.rid }}${{ matrix.ext }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: core-build-${{ github.run_number }}
+          name: Potopopi CamSync Core Native Build ${{ github.run_number }}
+          draft: false
+          prerelease: false
+          files: |
+            ./release-artifacts/**/*.dll
+            ./release-artifacts/**/*.so
+            ./release-artifacts/**/*.dylib
+            ./release-artifacts/**/*.a
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

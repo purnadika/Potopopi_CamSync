@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 using PotopopiCamSync.Models;
 
 namespace PotopopiCamSync.Repositories
@@ -32,7 +32,7 @@ namespace PotopopiCamSync.Repositories
             if (File.Exists(_configFilePath))
             {
                 string json = File.ReadAllText(_configFilePath);
-                Config = JsonConvert.DeserializeObject<AppConfigModel>(json) ?? new AppConfigModel();
+                Config = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.AppConfigModel) ?? new AppConfigModel();
             }
             else
             {
@@ -42,7 +42,7 @@ namespace PotopopiCamSync.Repositories
             if (File.Exists(_stateFilePath))
             {
                 string json = File.ReadAllText(_stateFilePath);
-                State = JsonConvert.DeserializeObject<SyncStateModel>(json) ?? new SyncStateModel();
+                State = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.SyncStateModel) ?? new SyncStateModel();
             }
             else
             {
@@ -52,13 +52,13 @@ namespace PotopopiCamSync.Repositories
 
         public void SaveConfig()
         {
-            string json = JsonConvert.SerializeObject(Config, Formatting.Indented);
+            string json = JsonSerializer.Serialize(Config, SourceGenerationContext.Default.AppConfigModel);
             File.WriteAllText(_configFilePath, json);
         }
 
         public void SaveState()
         {
-            string json = JsonConvert.SerializeObject(State, Formatting.Indented);
+            string json = JsonSerializer.Serialize(State, SourceGenerationContext.Default.SyncStateModel);
             File.WriteAllText(_stateFilePath, json);
         }
     }

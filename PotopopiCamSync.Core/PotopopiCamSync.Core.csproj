@@ -1,11 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition="'$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'linux-x64' or '$(RuntimeIdentifier)' == 'linux-bionic-arm64'">net10.0</TargetFramework>
+    <TargetFramework Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">net10.0-macos</TargetFramework>
+    <TargetFramework Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">net10.0-ios</TargetFramework>
+    
+    <TargetFrameworks Condition="'$(TargetFramework)' == ''">net10.0;net10.0-android;net10.0-ios;net10.0-macos</TargetFrameworks>
+    
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+
+    <DisableUnsupportedError Condition="'$(RuntimeIdentifier)' == 'linux-bionic-arm64'">true</DisableUnsupportedError>
+    <PublishAotUsingRuntimePack Condition="'$(RuntimeIdentifier)' == 'linux-bionic-arm64'">true</PublishAotUsingRuntimePack>
+    
+    <SysRoot Condition="'$(RuntimeIdentifier)' == 'linux-bionic-arm64'">$(ANDROID_NDK_HOME)/toolchains/llvm/prebuilt/linux-x86_64/sysroot</SysRoot>
+    
+    <IsAppBundle Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">false</IsAppBundle>
+ 
     <AssemblyName>PotopopiCamSync.Core</AssemblyName>
     <RootNamespace>PotopopiCamSync</RootNamespace>
+    
+    <NativeLib Condition="'$(RuntimeIdentifier)' != 'ios-arm64'">Shared</NativeLib>
+    <NativeLib Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">Static</NativeLib>
+ 
+    <StripSymbols Condition="'$(RuntimeIdentifier)' != 'linux-bionic-arm64'">true</StripSymbols>
+    <StripSymbols Condition="'$(RuntimeIdentifier)' == 'linux-bionic-arm64'">false</StripSymbols>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-bionic-arm64'">
+    <LinkerArg Include="-L$(MSBuildProjectDirectory)/dummy_libgcc" />
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="PotopopiCamSync.Tests" />
@@ -16,7 +43,6 @@
     <PackageReference Include="MetadataExtractor" Version="2.9.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Polly" Version="8.4.1" />
   </ItemGroup>
 </Project>
