@@ -1,8 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using PotopopiCamSync.Services;
 using PotopopiCamSync.Repositories;
+using PotopopiCamSync.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace PotopopiCamSync.Interop
