@@ -1,0 +1,9 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2004/08/reflect/compound">
+  <Library Name="PotopopiCamSync.Core">
+    <Type Name="PotopopiCamSync.Interop.CoreApi" Dynamic="Required All">
+      <Method Name="Init" />
+      <Method Name="IsInitialized" />
+      <Method Name="StartSync" />
+    </Type>
+  </Library>
+</Directives>
