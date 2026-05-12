@@ -1,6 +1,8 @@
 <Directives xmlns="http://schemas.microsoft.com/netfx/2004/08/reflect/compound">
-  <Assembly Name="PotopopiCamSync.Core">
-    <Type Name="PotopopiCamSync.Interop.CoreApi" Dynamic="Required All" />
-    <Type Name="PotopopiCamSync.Services.ManualDeviceProvider" Dynamic="Required All" />
-  </Assembly>
+  <Application>
+    <Assembly Name="PotopopiCamSync.Core">
+      <Type Name="PotopopiCamSync.Interop.CoreApi" Dynamic="Required All" />
+      <Type Name="PotopopiCamSync.Services.ManualDeviceProvider" Dynamic="Required All" />
+    </Assembly>
+  </Application>
 </Directives>
