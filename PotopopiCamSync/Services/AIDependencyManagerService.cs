@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace PotopopiCamSync.Services
 {
@@ -58,15 +58,20 @@ namespace PotopopiCamSync.Services
                 response.EnsureSuccessStatusCode();
                 
                 string json = await response.Content.ReadAsStringAsync(ct);
-                var releaseInfo = JObject.Parse(json);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
                 
-                var assets = releaseInfo["assets"] as JArray;
-                if (assets == null) throw new Exception("No assets found in the latest release.");
+                if (!root.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array)
+                    throw new Exception("No assets found in the latest release.");
 
-                var aiAsset = assets.FirstOrDefault(a => a["name"]?.ToString() == "AI_Dependencies.zip");
-                if (aiAsset == null) throw new Exception("AI_Dependencies.zip not found in the latest release.");
+                var aiAsset = assets.EnumerateArray()
+                    .FirstOrDefault(a => a.GetProperty("name").GetString() == "AI_Dependencies.zip");
+                
+                if (aiAsset.ValueKind == JsonValueKind.Undefined) 
+                    throw new Exception("AI_Dependencies.zip not found in the latest release.");
 
-                string downloadUrl = aiAsset["browser_download_url"]?.ToString() ?? throw new Exception("Download URL is empty.");
+                string downloadUrl = aiAsset.GetProperty("browser_download_url").GetString() 
+                    ?? throw new Exception("Download URL is empty.");
 
                 // 2. Download the file
                 _logger.LogInformation($"Downloading AI dependencies from {downloadUrl}");

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Reflection;
 using System.Net.Http;
 
@@ -51,7 +52,7 @@ public class UpdateCheckerService
             }
 
             var json = await response.Content.ReadAsStringAsync(cts.Token);
-            var release = JsonConvert.DeserializeObject<GitHubRelease>(json);
+            var release = JsonSerializer.Deserialize<GitHubRelease>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (release?.TagName == null)
             {
@@ -116,13 +117,13 @@ public class UpdateCheckerService
     /// </summary>
     private class GitHubRelease
     {
-        [JsonProperty("tag_name")]
+        [JsonPropertyName("tag_name")]
         public string? TagName { get; set; }
 
-        [JsonProperty("html_url")]
+        [JsonPropertyName("html_url")]
         public string? HtmlUrl { get; set; }
 
-        [JsonProperty("body")]
+        [JsonPropertyName("body")]
         public string? Body { get; set; }
     }
 }
